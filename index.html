@@ -24,19 +24,14 @@
     }
     .panel h2 { font-size: 15px; font-weight: 600; color: #444; margin-bottom: 14px; }
 
-    .row { display: flex; gap: 16px; flex-wrap: wrap; }
-    .col { flex: 1; min-width: 240px; }
-
-    label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; }
-    input[type="text"] {
-      width: 100%; padding: 8px 10px; border: 1px solid #ddd;
-      border-radius: 6px; font-size: 13px; color: #333;
+    .btn-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+    .font-size-control { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; color: #555; }
+    .font-size-control select {
+      padding: 8px 10px; border: 1px solid #ddd; border-radius: 9px;
+      font-size: 13px; color: #333; background: white; cursor: pointer;
     }
-    input[type="text"]:focus { outline: none; border-color: #e84f4f; }
-
-    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
     button {
-      padding: 9px 18px; border: none; border-radius: 6px;
+      padding: 10px 20px; border: none; border-radius: 9px;
       font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s;
     }
     .btn-primary   { background: #e84f4f; color: white; }
@@ -52,23 +47,45 @@
 
     .task-list { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
     .task-list th {
-      background: #f5f5f5; padding: 8px 6px; text-align: left;
-      font-weight: 600; color: #555; border-bottom: 2px solid #ddd;
+      background: #f5f5f5; padding: 10px 8px; text-align: left;
+      font-weight: 700; color: #555; border-bottom: 2px solid #ddd;
+      letter-spacing: 0.02em;
     }
-    .task-list td { padding: 6px; border-bottom: 1px solid #eee; vertical-align: middle; }
-    .task-list tr:hover td { background: #fafafa; }
+    .task-list td { padding: 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    .task-list tbody tr:nth-child(even) td { background: #f7f9fb; }
+    .task-list tr:hover td { background: #fdf2f2; }
     .task-list input[type="text"], .task-list input[type="date"] {
-      width: 100%; padding: 5px 7px; font-size: 12px;
-      border: 1px solid #ddd; border-radius: 4px;
+      width: 100%; padding: 6px 8px; font-size: 12px;
+      border: 1px solid #ddd; border-radius: 6px;
     }
-    .task-list input[type="number"] {
-      width: 50px; padding: 5px 7px; font-size: 12px;
-      border: 1px solid #ddd; border-radius: 4px;
+    .task-list select {
+      width: 100%; padding: 6px 8px; font-size: 12px;
+      border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer;
     }
-    .task-list input[type="color"] { width: 32px; height: 26px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
-    .del-btn { background: #fee; border: 1px solid #fcc; color: #c33; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; }
+
+    .color-picker { position: relative; display: inline-block; }
+    .color-swatch {
+      width: 32px; height: 28px; border: 1px solid #ddd; border-radius: 6px;
+      cursor: pointer; padding: 0;
+    }
+    .color-popover {
+      display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 50;
+      background: white; border: 1px solid #ddd; border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15); padding: 10px;
+    }
+    .color-popover.open { display: block; }
+    .color-grid { display: grid; grid-template-columns: repeat(9, 18px); gap: 4px; margin-bottom: 8px; }
+    .color-grid .swatch {
+      width: 18px; height: 18px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.08);
+      cursor: pointer; padding: 0;
+    }
+    .color-grid .swatch:hover { outline: 2px solid #999; outline-offset: 1px; }
+    .custom-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #666; border-top: 1px solid #eee; padding-top: 8px; }
+    .custom-row input[type="color"] { width: 24px; height: 24px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; padding: 0; }
+
+    .del-btn { background: #fee; border: 1px solid #fcc; color: #c33; border-radius: 6px; padding: 4px 9px; font-size: 11px; cursor: pointer; }
     .del-btn:hover { background: #fdd; }
-    .add-btn { background: #e8f4e8; border: 1px solid #c3dfc3; color: #2a7a2a; border-radius: 4px; padding: 6px 12px; font-size: 12px; cursor: pointer; margin-top: 8px; }
+    .add-btn { background: #e8f4e8; border: 1px solid #c3dfc3; color: #2a7a2a; border-radius: 7px; padding: 7px 14px; font-size: 12px; cursor: pointer; margin-top: 8px; }
     .add-btn:hover { background: #d4ecd4; }
   </style>
 </head>
@@ -76,24 +93,6 @@
 
 <h1>📅 スケジュールカレンダー生成ツール</h1>
 <p class="subtitle">タスクと日程を入力すると、スライド用のカレンダー画像（PNG）を自動生成します</p>
-
-<div class="panel">
-  <h2>基本設定</h2>
-  <div class="row">
-    <div class="col">
-      <label>カレンダータイトル（任意）</label>
-      <input type="text" id="calTitle" value="導入の流れ（7月開始）">
-    </div>
-    <div class="col">
-      <label>サブタイトル（任意）</label>
-      <input type="text" id="calSubtitle" value="貴社では「タグ配信・ServiceWorkerファイル設置」後、「動作確認」を行っていただきます。">
-    </div>
-    <div class="col">
-      <label>注釈（任意）</label>
-      <input type="text" id="calNote" value="※ 記載の必要日数・期間はあくまで想定のため、動作環境等によって大きく前後する可能性もございます">
-    </div>
-  </div>
-</div>
 
 <div class="panel">
   <h2>タスク入力</h2>
@@ -105,7 +104,7 @@
         <th style="width:14%">終了日</th>
         <th style="width:8%">背景色</th>
         <th style="width:8%">文字色</th>
-        <th style="width:7%">レーン</th>
+        <th style="width:7%">表示レーン</th>
         <th style="width:7%">矢印</th>
         <th style="width:5%"></th>
       </tr>
@@ -117,6 +116,16 @@
   <div id="inputError" class="error"></div>
   <div class="btn-row">
     <button class="btn-primary" onclick="generateCalendar()">🗓 カレンダーを生成</button>
+    <label class="font-size-control">
+      タスク名の文字サイズ
+      <select id="fontSizeSelect">
+        <option value="auto" selected>自動</option>
+        <option value="14">小</option>
+        <option value="18">中</option>
+        <option value="22">大</option>
+        <option value="26">特大</option>
+      </select>
+    </label>
   </div>
 </div>
 
@@ -132,34 +141,106 @@
 
 <script>
 const defaultTasks = [
-  { name: '本番環境へのタグ・SW設置', start: '2026-06-15', end: '2026-06-26', bg: '#f4c4bb', text: '#333333', lane: 1, arrow: false },
-  { name: '動作確認',                 start: '2026-06-21', end: '2026-06-26', bg: '#e87878', text: '#ffffff', lane: 2, arrow: false },
-  { name: '段階適用10%→30%',          start: '2026-06-29', end: '2026-07-07', bg: '#b8d4e8', text: '#333333', lane: 1, arrow: false },
-  { name: '計測期間 50%',             start: '2026-07-01', end: '2026-07-11', bg: '#5b8ab5', text: '#ffffff', lane: 2, arrow: false },
-  { name: '結果報告会',               start: '2026-07-13', end: '2026-07-24', bg: '#f4c4bb', text: '#cc0000', lane: 1, arrow: false },
-  { name: '7月より正式運用開始予定',   start: '2026-07-26', end: '2026-07-28', bg: '#333333', text: '#ffffff', lane: 1, arrow: false },
+  { name: '【stg】タグSW設置',            start: '2026-06-01', end: '2026-06-05', bg: '#d8dee4', text: '#333333', lane: 1, arrow: false },
+  { name: '【stg】Booster設定・動作確認', start: '2026-06-05', end: '2026-06-10', bg: '#8a97a5', text: '#ffffff', lane: 2, arrow: false },
+  { name: '【prod】タグSW設置',           start: '2026-06-15', end: '2026-06-26', bg: '#f4c4bb', text: '#333333', lane: 1, arrow: false },
+  { name: '【prod】Booster設定・動作確認',start: '2026-06-21', end: '2026-06-26', bg: '#e87878', text: '#ffffff', lane: 2, arrow: false },
+  { name: '段階適用10%→30%',              start: '2026-06-29', end: '2026-07-07', bg: '#b8d4e8', text: '#333333', lane: 1, arrow: false },
+  { name: '計測期間 50%',                 start: '2026-07-01', end: '2026-07-11', bg: '#5b8ab5', text: '#ffffff', lane: 2, arrow: false },
+  { name: '結果報告',                     start: '2026-07-13', end: '2026-07-24', bg: '#f4c4bb', text: '#cc0000', lane: 1, arrow: false },
+  { name: '正式運用開始',                 start: '2026-07-26', end: '2026-07-28', bg: '#333333', text: '#ffffff', lane: 1, arrow: false },
 ];
+
+const COLOR_PALETTE = [
+  '#000000', '#333333', '#555555', '#777777', '#999999', '#bbbbbb', '#dddddd', '#eeeeee', '#ffffff',
+  '#e53935', '#fb8c00', '#fdd835', '#43a047', '#00acc1', '#1e88e5', '#8e24aa', '#d81b60',
+  '#f4c7c3', '#ffd9b3', '#fff2a8', '#c8e6c9', '#b2ebf2', '#bbdefb', '#e1bee7', '#f8bbd0',
+  '#e57373', '#ffb74d', '#fff176', '#81c784', '#4dd0e1', '#64b5f6', '#ba68c8', '#f06292',
+  '#b71c1c', '#e65100', '#f57f17', '#1b5e20', '#006064', '#0d47a1', '#4a148c', '#880e4f',
+];
+
+function colorFieldHTML(cls, value) {
+  return `
+    <div class="color-picker">
+      <input type="hidden" class="${cls}" value="${value}">
+      <button type="button" class="color-swatch" style="background:${value}"></button>
+      <div class="color-popover">
+        <div class="color-grid">
+          ${COLOR_PALETTE.map(c => `<button type="button" class="swatch" data-c="${c}" style="background:${c}"></button>`).join('')}
+        </div>
+        <label class="custom-row">
+          <input type="color" class="custom-color-input" value="${value}">
+          <span>カスタム</span>
+        </label>
+      </div>
+    </div>`;
+}
 
 function addTaskRow(task = {}) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td><input type="text"   value="${task.name  || ''}"         placeholder="タスク名"></td>
-    <td><input type="date"   value="${task.start || ''}"></td>
-    <td><input type="date"   value="${task.end   || ''}"></td>
-    <td><input type="color"  value="${task.bg    || '#e87878'}"></td>
-    <td><input type="color"  value="${task.text  || '#ffffff'}"></td>
-    <td><input type="number" value="${task.lane  || 1}" min="1" max="3"></td>
-    <td style="text-align:center"><input type="checkbox" ${task.arrow ? 'checked' : ''} title="末尾に矢印を表示"></td>
+    <td><input type="text" class="f-name" value="${task.name  || ''}" placeholder="タスク名"></td>
+    <td><input type="date" class="f-start" value="${task.start || ''}"></td>
+    <td><input type="date" class="f-end" value="${task.end   || ''}"></td>
+    <td>${colorFieldHTML('f-bg', task.bg || '#e87878')}</td>
+    <td>${colorFieldHTML('f-text', task.text || '#ffffff')}</td>
+    <td>
+      <select class="f-lane">
+        <option value="1" ${task.lane == 2 ? '' : 'selected'}>上</option>
+        <option value="2" ${task.lane == 2 ? 'selected' : ''}>下</option>
+      </select>
+    </td>
+    <td style="text-align:center"><input type="checkbox" class="f-arrow" ${task.arrow ? 'checked' : ''} title="末尾に矢印を表示"></td>
     <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
   `;
   document.getElementById('taskBody').appendChild(tr);
 }
 
+function setPickerColor(picker, color) {
+  picker.querySelector('.color-swatch').style.background = color;
+  picker.querySelector('input[type="hidden"]').value = color;
+  picker.querySelector('.custom-color-input').value = color;
+}
+
+document.addEventListener('click', (e) => {
+  const swatchBtn = e.target.closest('.color-swatch');
+  const paletteSwatch = e.target.closest('.color-popover .swatch');
+  if (swatchBtn) {
+    const pop = swatchBtn.nextElementSibling;
+    const wasOpen = pop.classList.contains('open');
+    document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+    if (!wasOpen) pop.classList.add('open');
+    e.stopPropagation();
+    return;
+  }
+  if (paletteSwatch) {
+    const picker = paletteSwatch.closest('.color-picker');
+    setPickerColor(picker, paletteSwatch.dataset.c);
+    picker.querySelector('.color-popover').classList.remove('open');
+    return;
+  }
+  if (!e.target.closest('.color-popover')) {
+    document.querySelectorAll('.color-popover.open').forEach(p => p.classList.remove('open'));
+  }
+});
+
+document.addEventListener('input', (e) => {
+  if (e.target.classList.contains('custom-color-input')) {
+    setPickerColor(e.target.closest('.color-picker'), e.target.value);
+  }
+});
+
 function getTableTasks() {
   return Array.from(document.querySelectorAll('#taskBody tr')).map(tr => {
-    const i = tr.querySelectorAll('input');
-    return { name: i[0].value.trim(), start: i[1].value, end: i[2].value,
-             bg: i[3].value, text: i[4].value, lane: parseInt(i[5].value) || 1, arrow: i[6].checked };
+    return {
+      name: tr.querySelector('.f-name').value.trim(),
+      start: tr.querySelector('.f-start').value,
+      end: tr.querySelector('.f-end').value,
+      bg: tr.querySelector('.f-bg').value,
+      text: tr.querySelector('.f-text').value,
+      lane: parseInt(tr.querySelector('.f-lane').value) || 1,
+      arrow: tr.querySelector('.f-arrow').checked,
+    };
   }).filter(t => t.name && t.start && t.end);
 }
 
@@ -171,9 +252,9 @@ async function generateCalendar() {
   tasks = tasks.map(t => ({ ...t, startDate: new Date(t.start + 'T00:00:00'), endDate: new Date(t.end + 'T00:00:00') }));
   await document.fonts.load('700 16px "Noto Sans JP"');
   await document.fonts.load('400 16px "Noto Sans JP"');
-  drawCalendar(tasks, document.getElementById('calTitle').value,
-                      document.getElementById('calSubtitle').value,
-                      document.getElementById('calNote').value);
+  const fontSizeValue = document.getElementById('fontSizeSelect').value;
+  const barFontSize = fontSizeValue === 'auto' ? null : parseInt(fontSizeValue);
+  drawCalendar(tasks, barFontSize);
   const panel = document.getElementById('output-panel');
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior: 'smooth' });
@@ -187,6 +268,74 @@ function getMonths(tasks) {
   const endM = new Date(maxD.getFullYear(), maxD.getMonth(), 1);
   while (d <= endM) { months.push(new Date(d)); d = new Date(d.getFullYear(), d.getMonth() + 1, 1); }
   return months;
+}
+
+function weeksInMonth(month) {
+  const year = month.getFullYear(), mo = month.getMonth();
+  const firstDay = new Date(year, mo, 1).getDay();
+  const daysInM  = new Date(year, mo + 1, 0).getDate();
+  return Math.ceil((firstDay + daysInM) / 7);
+}
+
+// 日本の祝日（振替休日・国民の休日を含む）を年単位で計算
+function getJapaneseHolidays(year) {
+  const h = {};
+  const key = (m, d) => `${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const set = (m, d, name) => { h[key(m, d)] = name; };
+  const nthMonday = (month, n) => {
+    const first = new Date(year, month - 1, 1);
+    const firstMonday = 1 + ((8 - first.getDay()) % 7);
+    return firstMonday + (n - 1) * 7;
+  };
+
+  set(1, 1, '元日');
+  set(1, nthMonday(1, 2), '成人の日');
+  set(2, 11, '建国記念の日');
+  set(2, 23, '天皇誕生日');
+  set(3, Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4)), '春分の日');
+  set(4, 29, '昭和の日');
+  set(5, 3, '憲法記念日');
+  set(5, 4, 'みどりの日');
+  set(5, 5, 'こどもの日');
+  set(7, nthMonday(7, 3), '海の日');
+  set(8, 11, '山の日');
+  set(9, nthMonday(9, 3), '敬老の日');
+  set(9, Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4)), '秋分の日');
+  set(10, nthMonday(10, 2), 'スポーツの日');
+  set(11, 3, '文化の日');
+  set(11, 23, '勤労感謝の日');
+
+  // 国民の休日：前後を祝日に挟まれた平日（日曜以外）
+  Object.keys(h).slice().forEach(k => {
+    const [y, m, d] = k.split('-').map(Number);
+    const mid  = new Date(y, m - 1, d + 1);
+    const next = new Date(y, m - 1, d + 2);
+    const midKey  = `${mid.getFullYear()}-${String(mid.getMonth()+1).padStart(2,'0')}-${String(mid.getDate()).padStart(2,'0')}`;
+    const nextKey = `${next.getFullYear()}-${String(next.getMonth()+1).padStart(2,'0')}-${String(next.getDate()).padStart(2,'0')}`;
+    if (h[nextKey] && !h[midKey] && mid.getDay() !== 0) h[midKey] = '国民の休日';
+  });
+
+  // 振替休日：祝日が日曜のとき、直後の祝日でない日を休日にする
+  Object.keys(h).slice().forEach(k => {
+    const [y, m, d] = k.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    if (date.getDay() !== 0) return;
+    let sub = new Date(y, m - 1, d + 1);
+    let subKey = `${sub.getFullYear()}-${String(sub.getMonth()+1).padStart(2,'0')}-${String(sub.getDate()).padStart(2,'0')}`;
+    while (h[subKey]) {
+      sub = new Date(sub.getFullYear(), sub.getMonth(), sub.getDate() + 1);
+      subKey = `${sub.getFullYear()}-${String(sub.getMonth()+1).padStart(2,'0')}-${String(sub.getDate()).padStart(2,'0')}`;
+    }
+    h[subKey] = '振替休日';
+  });
+
+  return h;
+}
+
+function getHolidayMap(years) {
+  const map = {};
+  years.forEach(y => Object.assign(map, getJapaneseHolidays(y)));
+  return map;
 }
 
 function drawRoundedRect(ctx, x, y, w, h, r, color) {
@@ -210,36 +359,38 @@ function drawArrow(ctx, x1, y1, x2, y2, color) {
   ctx.closePath(); ctx.fill(); ctx.restore();
 }
 
-function drawCalendar(tasks, title, subtitle, note) {
+function drawCalendar(tasks, barFontSizeOverride) {
   const canvas = document.getElementById('calendar');
   const F = '"Noto Sans JP", "Helvetica Neue", Arial, sans-serif';
 
   const SCALE   = 2;
-  const PAD     = 48;
-  const TITLE_H = title    ? 68 : 16;
-  const SUB_H   = subtitle ? 48 : 0;
-  const NOTE_H  = note     ? 40 : 0;
+  const PAD     = 56;
   const HDR_H   = 64;
   const DAY_H   = 38;
-  const CAL_GAP = 36;
-  const WEEKS   = 6;
+  const CAL_GAP = 40;
 
   const months = getMonths(tasks);
   const N = months.length;
+  const years = [...new Set(months.map(m => m.getFullYear()))];
+  const holidays = getHolidayMap(years);
 
   const TOTAL_W = 1280;
   const TOTAL_H = Math.round(TOTAL_W * 3 / 4);
 
   const CAL_W  = (TOTAL_W - PAD * 2 - CAL_GAP * (N - 1)) / N;
   const CELL_W = CAL_W / 7;
-  const CAL_H  = TOTAL_H - PAD * 2 - TITLE_H - SUB_H - NOTE_H;
-  const WEEK_H = (CAL_H - HDR_H - DAY_H) / WEEKS;
+  const CAL_H  = TOTAL_H - PAD * 2;
+
+  // 月ごとの週数（4〜6週）に応じて週の高さを自動調整する
+  const monthWeeks   = months.map(weeksInMonth);
+  const weekHeights  = monthWeeks.map(w => (CAL_H - HDR_H - DAY_H) / w);
+  const WEEK_H       = Math.min(...weekHeights); // バー等のサイズ基準は最小の週高さに合わせて必ず収まるようにする
 
   const BAR_H        = Math.round(WEEK_H * 0.30);
   const LANE_OFFSET  = Math.round(WEEK_H * 0.26);
   const LANE_STRIDE  = BAR_H + Math.round(WEEK_H * 0.05);
   const DATE_FONT_SZ = Math.round(WEEK_H * 0.19);
-  const BAR_FONT_SZ  = Math.round(BAR_H  * 0.52);
+  const BAR_FONT_SZ  = barFontSizeOverride || Math.round(BAR_H * 0.52);
   const DAY_FONT_SZ  = Math.round(DAY_H  * 0.38);
   const HDR_YEAR_SZ  = Math.round(HDR_H  * 0.30);
   const HDR_MONTH_SZ = Math.round(HDR_H  * 0.68);
@@ -254,30 +405,7 @@ function drawCalendar(tasks, title, subtitle, note) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, TOTAL_W, TOTAL_H);
 
-  let curY = PAD;
-
-  if (title) {
-    ctx.fillStyle = '#1a1a1a';
-    ctx.font = `700 ${Math.round(TITLE_H * 0.44)}px ${F}`;
-    ctx.textAlign = 'left';
-    ctx.fillText(title, PAD, curY + TITLE_H * 0.60);
-    curY += TITLE_H;
-  }
-  if (subtitle) {
-    const parts = subtitle.split(/(「[^」]+」)/g);
-    let xOff = PAD;
-    const sz = Math.round(SUB_H * 0.33);
-    parts.forEach(part => {
-      const bold = /^「/.test(part);
-      ctx.font = bold ? `700 ${sz}px ${F}` : `400 ${sz}px ${F}`;
-      ctx.fillStyle = bold ? '#cc2222' : '#444';
-      ctx.fillText(part, xOff, curY + SUB_H * 0.60);
-      xOff += ctx.measureText(part).width;
-    });
-    curY += SUB_H;
-  }
-
-  const gridTop = curY;
+  const gridTop = PAD;
   const cellMap = {};
   const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -316,23 +444,26 @@ function drawCalendar(tasks, title, subtitle, note) {
     const firstDay = new Date(year, mo, 1).getDay();
     const daysInM  = new Date(year, mo + 1, 0).getDate();
     const prevDays = new Date(year, mo, 0).getDate();
+    const rowH     = weekHeights[mi];
+    const rows     = monthWeeks[mi];
 
-    for (let row = 0; row < WEEKS; row++) {
+    for (let row = 0; row < rows; row++) {
       for (let col = 0; col < 7; col++) {
         const dayNum = row * 7 + col - firstDay + 1;
         const cx = calX + col * CELL_W;
-        const cy = gridY + row * WEEK_H;
+        const cy = gridY + row * rowH;
         ctx.strokeStyle = '#d0d0d0'; ctx.lineWidth = 0.5;
-        ctx.strokeRect(cx, cy, CELL_W, WEEK_H);
+        ctx.strokeRect(cx, cy, CELL_W, rowH);
 
         let label, textColor, isCurrent = false;
         if (dayNum < 1)         { label = String(prevDays + dayNum);  textColor = '#c8c8c8'; }
         else if (dayNum > daysInM) { label = String(dayNum - daysInM); textColor = '#c8c8c8'; }
         else {
           label = String(dayNum); isCurrent = true;
-          textColor = col === 0 ? '#cc3333' : col === 6 ? '#4477bb' : '#222';
           const key = `${year}-${String(mo+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
-          cellMap[key] = { x: cx, y: cy, w: CELL_W, h: WEEK_H, gridRow: row };
+          const isHoliday = !!holidays[key];
+          textColor = (col === 0 || isHoliday) ? '#cc3333' : col === 6 ? '#4477bb' : '#222';
+          cellMap[key] = { x: cx, y: cy, w: CELL_W, h: rowH, gridRow: row };
         }
         ctx.fillStyle = textColor;
         ctx.font = isCurrent ? `700 ${DATE_FONT_SZ}px ${F}` : `400 ${Math.round(DATE_FONT_SZ * 0.85)}px ${F}`;
@@ -360,8 +491,8 @@ function drawCalendar(tasks, title, subtitle, note) {
       const bx = seg.minX + 2, bw = seg.maxX - seg.minX - 4;
       const by = seg.y + LANE_OFFSET + (task.lane - 1) * LANE_STRIDE;
       if (bw <= 0) return;
-      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.10)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
-      drawRoundedRect(ctx, bx, by, bw, BAR_H, 4, task.bg); ctx.restore();
+      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5;
+      drawRoundedRect(ctx, bx, by, bw, BAR_H, BAR_H / 2, task.bg); ctx.restore();
       ctx.save(); ctx.beginPath(); ctx.rect(bx + 3, by, bw - 6, BAR_H); ctx.clip();
       ctx.fillStyle = task.text; ctx.font = `700 ${BAR_FONT_SZ}px ${F}`; ctx.textAlign = 'center';
       ctx.fillText(task.name, bx + bw / 2, by + BAR_H * 0.67); ctx.restore();
@@ -369,13 +500,6 @@ function drawCalendar(tasks, title, subtitle, note) {
         drawArrow(ctx, seg.maxX - 4, by + BAR_H / 2, seg.maxX + 34, by + BAR_H / 2, task.bg);
     });
   });
-
-  if (note) {
-    ctx.fillStyle = '#777';
-    ctx.font = `400 ${Math.round(NOTE_H * 0.33)}px ${F}`;
-    ctx.textAlign = 'left';
-    ctx.fillText(note, PAD, gridTop + CAL_H + 14 + NOTE_H * 0.5);
-  }
 }
 
 function downloadPNG() {
