@@ -58,11 +58,6 @@
       width: 100%; padding: 6px 8px; font-size: 12px;
       border: 1px solid #ddd; border-radius: 6px;
     }
-    .task-list select {
-      width: 100%; padding: 6px 8px; font-size: 12px;
-      border: 1px solid #ddd; border-radius: 6px; background: white; cursor: pointer;
-    }
-
     .color-picker { position: relative; display: inline-block; }
     .color-swatch {
       width: 32px; height: 28px; border: 1px solid #ddd; border-radius: 6px;
@@ -99,13 +94,12 @@
   <table class="task-list">
     <thead>
       <tr>
-        <th style="width:24%">タスク名</th>
-        <th style="width:14%">開始日</th>
-        <th style="width:14%">終了日</th>
-        <th style="width:8%">背景色</th>
-        <th style="width:8%">文字色</th>
-        <th style="width:7%">表示レーン</th>
-        <th style="width:7%">矢印</th>
+        <th style="width:28%">タスク名</th>
+        <th style="width:16%">開始日</th>
+        <th style="width:16%">終了日</th>
+        <th style="width:9%">背景色</th>
+        <th style="width:9%">文字色</th>
+        <th style="width:8%">矢印</th>
         <th style="width:5%"></th>
       </tr>
     </thead>
@@ -141,14 +135,14 @@
 
 <script>
 const defaultTasks = [
-  { name: '【stg】タグSW設置',            start: '2026-06-01', end: '2026-06-05', bg: '#d8dee4', text: '#333333', lane: 1, arrow: false },
-  { name: '【stg】Booster設定・動作確認', start: '2026-06-05', end: '2026-06-10', bg: '#8a97a5', text: '#ffffff', lane: 2, arrow: false },
-  { name: '【prod】タグSW設置',           start: '2026-06-15', end: '2026-06-26', bg: '#f4c4bb', text: '#333333', lane: 1, arrow: false },
-  { name: '【prod】Booster設定・動作確認',start: '2026-06-21', end: '2026-06-26', bg: '#e87878', text: '#ffffff', lane: 2, arrow: false },
-  { name: '段階適用10%→30%',              start: '2026-06-29', end: '2026-07-07', bg: '#b8d4e8', text: '#333333', lane: 1, arrow: false },
-  { name: '計測期間 50%',                 start: '2026-07-01', end: '2026-07-11', bg: '#5b8ab5', text: '#ffffff', lane: 2, arrow: false },
-  { name: '結果報告',                     start: '2026-07-13', end: '2026-07-24', bg: '#f4c4bb', text: '#cc0000', lane: 1, arrow: false },
-  { name: '正式運用開始',                 start: '2026-07-26', end: '2026-07-28', bg: '#333333', text: '#ffffff', lane: 1, arrow: false },
+  { name: '【stg】タグSW設置',            start: '2026-06-01', end: '2026-06-05', bg: '#d8dee4', text: '#333333', arrow: false },
+  { name: '【stg】Booster設定・動作確認', start: '2026-06-05', end: '2026-06-10', bg: '#8a97a5', text: '#ffffff', arrow: false },
+  { name: '【prod】タグSW設置',           start: '2026-06-15', end: '2026-06-26', bg: '#f4c4bb', text: '#333333', arrow: false },
+  { name: '【prod】Booster設定・動作確認',start: '2026-06-21', end: '2026-06-26', bg: '#e87878', text: '#ffffff', arrow: false },
+  { name: '段階適用10%→30%',              start: '2026-06-29', end: '2026-07-07', bg: '#b8d4e8', text: '#333333', arrow: false },
+  { name: '計測期間 50%',                 start: '2026-07-01', end: '2026-07-11', bg: '#5b8ab5', text: '#ffffff', arrow: false },
+  { name: '結果報告',                     start: '2026-07-13', end: '2026-07-24', bg: '#f4c4bb', text: '#cc0000', arrow: false },
+  { name: '正式運用開始',                 start: '2026-07-26', end: '2026-07-28', bg: '#333333', text: '#ffffff', arrow: false },
 ];
 
 const COLOR_PALETTE = [
@@ -184,12 +178,6 @@ function addTaskRow(task = {}) {
     <td><input type="date" class="f-end" value="${task.end   || ''}"></td>
     <td>${colorFieldHTML('f-bg', task.bg || '#e87878')}</td>
     <td>${colorFieldHTML('f-text', task.text || '#ffffff')}</td>
-    <td>
-      <select class="f-lane">
-        <option value="1" ${task.lane == 2 ? '' : 'selected'}>上</option>
-        <option value="2" ${task.lane == 2 ? 'selected' : ''}>下</option>
-      </select>
-    </td>
     <td style="text-align:center"><input type="checkbox" class="f-arrow" ${task.arrow ? 'checked' : ''} title="末尾に矢印を表示"></td>
     <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
   `;
@@ -238,7 +226,6 @@ function getTableTasks() {
       end: tr.querySelector('.f-end').value,
       bg: tr.querySelector('.f-bg').value,
       text: tr.querySelector('.f-text').value,
-      lane: parseInt(tr.querySelector('.f-lane').value) || 1,
       arrow: tr.querySelector('.f-arrow').checked,
     };
   }).filter(t => t.name && t.start && t.end);
@@ -386,11 +373,7 @@ function drawCalendar(tasks, barFontSizeOverride) {
   const weekHeights  = monthWeeks.map(w => (CAL_H - HDR_H - DAY_H) / w);
   const WEEK_H       = Math.min(...weekHeights); // バー等のサイズ基準は最小の週高さに合わせて必ず収まるようにする
 
-  const BAR_H        = Math.round(WEEK_H * 0.30);
-  const LANE_OFFSET  = Math.round(WEEK_H * 0.26);
-  const LANE_STRIDE  = BAR_H + Math.round(WEEK_H * 0.05);
   const DATE_FONT_SZ = Math.round(WEEK_H * 0.19);
-  const BAR_FONT_SZ  = barFontSizeOverride || Math.round(BAR_H * 0.52);
   const DAY_FONT_SZ  = Math.round(DAY_H  * 0.38);
   const HDR_YEAR_SZ  = Math.round(HDR_H  * 0.30);
   const HDR_MONTH_SZ = Math.round(HDR_H  * 0.68);
@@ -473,6 +456,8 @@ function drawCalendar(tasks, barFontSizeOverride) {
     }
   });
 
+  // タスクごとに、カレンダー上の行（週）単位でセグメント（連続する日付の帯）を求める
+  const rowGroups = {};
   tasks.forEach(task => {
     const segs = {};
     let d = new Date(task.startDate);
@@ -481,23 +466,50 @@ function drawCalendar(tasks, barFontSizeOverride) {
       const cell = cellMap[key];
       if (cell) {
         const sk = `${d.getFullYear()}-${d.getMonth()}-${cell.gridRow}`;
-        if (!segs[sk]) segs[sk] = { minX: cell.x, maxX: cell.x + cell.w, y: cell.y };
+        if (!segs[sk]) segs[sk] = { minX: cell.x, maxX: cell.x + cell.w, y: cell.y, rowH: cell.h };
         else { if (cell.x < segs[sk].minX) segs[sk].minX = cell.x; if (cell.x + cell.w > segs[sk].maxX) segs[sk].maxX = cell.x + cell.w; }
       }
       d.setDate(d.getDate() + 1);
     }
-    const segList = Object.values(segs).sort((a, b) => a.y - b.y || a.minX - b.minX);
-    segList.forEach((seg, si) => {
+    const segList = Object.entries(segs).sort((a, b) => a[1].y - b[1].y || a[1].minX - b[1].minX);
+    segList.forEach(([sk, seg], si) => {
+      if (!rowGroups[sk]) rowGroups[sk] = [];
+      rowGroups[sk].push({ task, seg, isLast: si === segList.length - 1 });
+    });
+  });
+
+  // 同じ行の中で日付が重なるタスク同士だけ自動で段を分け、重ならない行は帯を太く1本で表示する
+  Object.values(rowGroups).forEach(items => {
+    items.sort((a, b) => a.seg.minX - b.seg.minX);
+    const laneEnds = [];
+    items.forEach(item => {
+      let lane = laneEnds.findIndex(endX => endX <= item.seg.minX + 0.5);
+      if (lane === -1) { lane = laneEnds.length; laneEnds.push(0); }
+      laneEnds[lane] = item.seg.maxX;
+      item.lane = lane;
+    });
+    const numLanes   = laneEnds.length;
+    const rowH       = items[0].seg.rowH;
+    const TASK_TOP   = rowH * 0.28;
+    const TASK_AVAIL = rowH * 0.58; // 帯の合計高さの上限（下側の余白を確保するため）
+    const GAP        = rowH * 0.045;
+    const idealBandH = numLanes === 1 ? rowH * 0.42 : rowH * 0.26;
+    const bandH      = (idealBandH * numLanes + GAP * (numLanes - 1) <= TASK_AVAIL)
+      ? idealBandH
+      : (TASK_AVAIL - GAP * (numLanes - 1)) / numLanes;
+    const fontSz     = barFontSizeOverride || Math.round(bandH * 0.52);
+
+    items.forEach(({ task, seg, isLast, lane }) => {
       const bx = seg.minX + 2, bw = seg.maxX - seg.minX - 4;
-      const by = seg.y + LANE_OFFSET + (task.lane - 1) * LANE_STRIDE;
       if (bw <= 0) return;
+      const by = seg.y + TASK_TOP + lane * (bandH + GAP);
       ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5;
-      drawRoundedRect(ctx, bx, by, bw, BAR_H, BAR_H / 2, task.bg); ctx.restore();
-      ctx.save(); ctx.beginPath(); ctx.rect(bx + 3, by, bw - 6, BAR_H); ctx.clip();
-      ctx.fillStyle = task.text; ctx.font = `700 ${BAR_FONT_SZ}px ${F}`; ctx.textAlign = 'center';
-      ctx.fillText(task.name, bx + bw / 2, by + BAR_H * 0.67); ctx.restore();
-      if (task.arrow && si === segList.length - 1)
-        drawArrow(ctx, seg.maxX - 4, by + BAR_H / 2, seg.maxX + 34, by + BAR_H / 2, task.bg);
+      drawRoundedRect(ctx, bx, by, bw, bandH, bandH / 2, task.bg); ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.rect(bx + 3, by, bw - 6, bandH); ctx.clip();
+      ctx.fillStyle = task.text; ctx.font = `700 ${fontSz}px ${F}`; ctx.textAlign = 'center';
+      ctx.fillText(task.name, bx + bw / 2, by + bandH * 0.67); ctx.restore();
+      if (task.arrow && isLast)
+        drawArrow(ctx, seg.maxX - 4, by + bandH / 2, seg.maxX + 34, by + bandH / 2, task.bg);
     });
   });
 }
