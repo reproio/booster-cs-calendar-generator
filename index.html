@@ -78,6 +78,13 @@
     .custom-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #666; border-top: 1px solid #eee; padding-top: 8px; }
     .custom-row input[type="color"] { width: 24px; height: 24px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; padding: 0; }
 
+    .move-btn-group { display: flex; flex-direction: column; gap: 2px; }
+    .move-btn {
+      background: #eef2f5; border: 1px solid #dbe2e7; color: #556;
+      border-radius: 4px; padding: 1px 6px; font-size: 9px; line-height: 1.4; cursor: pointer;
+    }
+    .move-btn:hover { background: #e2e9ee; }
+
     .del-btn { background: #fee; border: 1px solid #fcc; color: #c33; border-radius: 6px; padding: 4px 9px; font-size: 11px; cursor: pointer; }
     .del-btn:hover { background: #fdd; }
     .add-btn { background: #e8f4e8; border: 1px solid #c3dfc3; color: #2a7a2a; border-radius: 7px; padding: 7px 14px; font-size: 12px; cursor: pointer; margin-top: 8px; }
@@ -100,6 +107,7 @@
         <th style="width:9%">背景色</th>
         <th style="width:9%">文字色</th>
         <th style="width:8%">矢印</th>
+        <th style="width:7%">並び替え</th>
         <th style="width:5%"></th>
       </tr>
     </thead>
@@ -179,9 +187,24 @@ function addTaskRow(task = {}) {
     <td>${colorFieldHTML('f-bg', task.bg || '#e87878')}</td>
     <td>${colorFieldHTML('f-text', task.text || '#ffffff')}</td>
     <td style="text-align:center"><input type="checkbox" class="f-arrow" ${task.arrow ? 'checked' : ''} title="末尾に矢印を表示"></td>
+    <td>
+      <div class="move-btn-group">
+        <button type="button" class="move-btn" onclick="moveTaskRow(this,-1)" title="上へ移動">▲</button>
+        <button type="button" class="move-btn" onclick="moveTaskRow(this,1)" title="下へ移動">▼</button>
+      </div>
+    </td>
     <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
   `;
   document.getElementById('taskBody').appendChild(tr);
+}
+
+function moveTaskRow(btn, dir) {
+  const tr = btn.closest('tr');
+  if (dir < 0 && tr.previousElementSibling) {
+    tr.parentNode.insertBefore(tr, tr.previousElementSibling);
+  } else if (dir > 0 && tr.nextElementSibling) {
+    tr.parentNode.insertBefore(tr.nextElementSibling, tr);
+  }
 }
 
 function setPickerColor(picker, color) {
@@ -323,6 +346,37 @@ function getHolidayMap(years) {
   const map = {};
   years.forEach(y => Object.assign(map, getJapaneseHolidays(y)));
   return map;
+}
+
+function wrapTextToWidth(ctx, text, maxWidth) {
+  const lines = [];
+  let current = '';
+  for (const ch of text) {
+    const test = current + ch;
+    if (current && ctx.measureText(test).width > maxWidth) {
+      lines.push(current);
+      current = ch;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+// 帯の幅に収まるよう文字を折り返し、それでも高さに収まらない場合は文字サイズを縮小する
+function fitTextInBar(ctx, text, maxWidth, maxHeight, baseFontSize, F, allowShrink) {
+  const minFontSize = 9;
+  let fontSize = baseFontSize;
+  let lines;
+  while (true) {
+    ctx.font = `700 ${fontSize}px ${F}`;
+    lines = wrapTextToWidth(ctx, text, maxWidth);
+    const totalHeight = lines.length * fontSize * 1.15;
+    if (!allowShrink || totalHeight <= maxHeight || fontSize <= minFontSize) break;
+    fontSize -= 1;
+  }
+  return { lines, fontSize };
 }
 
 function drawRoundedRect(ctx, x, y, w, h, r, color) {
@@ -505,9 +559,16 @@ function drawCalendar(tasks, barFontSizeOverride) {
       const by = seg.y + TASK_TOP + lane * (bandH + GAP);
       ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5;
       drawRoundedRect(ctx, bx, by, bw, bandH, bandH / 2, task.bg); ctx.restore();
+
+      const { lines, fontSize } = fitTextInBar(ctx, task.name, bw - 10, bandH * 0.86, fontSz, F, !barFontSizeOverride);
+      const lineH = fontSize * 1.15;
+      const textTop = by + bandH / 2 - (lines.length * lineH) / 2;
       ctx.save(); ctx.beginPath(); ctx.rect(bx + 3, by, bw - 6, bandH); ctx.clip();
-      ctx.fillStyle = task.text; ctx.font = `700 ${fontSz}px ${F}`; ctx.textAlign = 'center';
-      ctx.fillText(task.name, bx + bw / 2, by + bandH * 0.67); ctx.restore();
+      ctx.fillStyle = task.text; ctx.font = `700 ${fontSize}px ${F}`; ctx.textAlign = 'center';
+      lines.forEach((line, i) => {
+        ctx.fillText(line, bx + bw / 2, textTop + i * lineH + lineH * 0.82);
+      });
+      ctx.restore();
       if (task.arrow && isLast)
         drawArrow(ctx, seg.maxX - 4, by + bandH / 2, seg.maxX + 34, by + bandH / 2, task.bg);
     });
