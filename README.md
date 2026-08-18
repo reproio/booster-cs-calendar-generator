@@ -1,5 +1,7 @@
 # booster-cs-calendar-generator
 
+[![Cloudflare Pages](https://img.shields.io/badge/Cloudflare%20Pages-deployed-orange)](https://booster-cs-calendar-generator.pages.dev)
+
 スケジュールカレンダー生成ツール。イベントスケジュールをカレンダー画像（PNG）として生成・ダウンロードできる、単一ファイルの静的 Web アプリです（`index.html` のみ、ビルド不要）。
 
 ## URL
