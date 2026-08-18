@@ -6,7 +6,7 @@
 
 ## URL
 
-https://booster-cs-calendar-generator.pages.dev
+https://cs-calendar-generator.repro-booster-staging.com/
 
 ## Deployment
 
