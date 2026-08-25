@@ -137,7 +137,10 @@
 <div class="panel" id="output-panel">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
     <h2>プレビュー</h2>
-    <button class="btn-secondary" onclick="downloadPNG()">⬇️ PNGで保存</button>
+    <div style="display:flex; gap:10px;">
+      <button class="btn-secondary" onclick="copyShareLink()">🔗 共有リンクをコピー</button>
+      <button class="btn-secondary" onclick="downloadPNG()">⬇️ PNGで保存</button>
+    </div>
   </div>
   <div id="canvas-wrap">
     <canvas id="calendar"></canvas>
@@ -295,6 +298,38 @@ function getAllRowsData() {
     text: tr.querySelector('.f-text').value,
     arrow: tr.querySelector('.f-arrow').checked,
   }));
+}
+
+// 入力内容をURLのハッシュに載せて共有できるようにする（Base64url + UTF-8）
+function encodeState(obj) {
+  const bytes = new TextEncoder().encode(JSON.stringify(obj));
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function decodeState(str) {
+  try {
+    let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    const binary = atob(b64);
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  } catch (e) {
+    return null;
+  }
+}
+
+function copyShareLink() {
+  const state = { tasks: getAllRowsData(), fontSize: document.getElementById('fontSizeSelect').value };
+  const url = `${location.origin}${location.pathname}#s=${encodeState(state)}`;
+  const done = () => alert('共有用リンクをコピーしました。社内の方に送ってください。\n（相手がリンクを開くと、今の入力内容がそのまま表示されます）');
+  const fail = () => prompt('自動コピーに失敗しました。以下のURLを手動でコピーしてください:', url);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(done).catch(fail);
+  } else {
+    fail();
+  }
 }
 
 function getTableTasks() {
@@ -632,12 +667,17 @@ function downloadPNG() {
 }
 
 window.onload = () => {
-  const saved = loadState();
+  const hashState = location.hash.startsWith('#s=') ? decodeState(location.hash.slice(3)) : null;
+  const saved = hashState || loadState();
   if (saved && Array.isArray(saved.tasks) && saved.tasks.length) {
     saved.tasks.forEach(t => addTaskRow(t));
     if (saved.fontSize) document.getElementById('fontSizeSelect').value = saved.fontSize;
   } else {
     defaultTasks.forEach(t => addTaskRow(t));
+  }
+  if (hashState) {
+    saveState(); // 共有リンクから開いた内容を、この端末にも保存しておく
+    history.replaceState(null, '', location.pathname + location.search);
   }
   generateCalendar();
 };
