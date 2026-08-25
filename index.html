@@ -89,6 +89,8 @@
     .del-btn:hover { background: #fdd; }
     .add-btn { background: #e8f4e8; border: 1px solid #c3dfc3; color: #2a7a2a; border-radius: 7px; padding: 7px 14px; font-size: 12px; cursor: pointer; margin-top: 8px; }
     .add-btn:hover { background: #d4ecd4; }
+    .reset-btn { background: #f3f3f3; border: 1px solid #ddd; color: #666; border-radius: 7px; padding: 7px 14px; font-size: 12px; cursor: pointer; margin-top: 8px; margin-left: 8px; }
+    .reset-btn:hover { background: #e8e8e8; }
   </style>
 </head>
 <body>
@@ -113,7 +115,8 @@
     </thead>
     <tbody id="taskBody"></tbody>
   </table>
-  <button class="add-btn" onclick="addTaskRow()">＋ タスクを追加</button>
+  <button class="add-btn" onclick="addTaskRow(); saveState();">＋ タスクを追加</button>
+  <button class="reset-btn" onclick="resetToDefaults()">↺ 初期状態に戻す</button>
 
   <div id="inputError" class="error"></div>
   <div class="btn-row">
@@ -193,7 +196,7 @@ function addTaskRow(task = {}) {
         <button type="button" class="move-btn" onclick="moveTaskRow(this,1)" title="下へ移動">▼</button>
       </div>
     </td>
-    <td><button class="del-btn" onclick="this.closest('tr').remove()">✕</button></td>
+    <td><button class="del-btn" onclick="this.closest('tr').remove(); saveState();">✕</button></td>
   `;
   document.getElementById('taskBody').appendChild(tr);
 }
@@ -205,12 +208,14 @@ function moveTaskRow(btn, dir) {
   } else if (dir > 0 && tr.nextElementSibling) {
     tr.parentNode.insertBefore(tr.nextElementSibling, tr);
   }
+  saveState();
 }
 
 function setPickerColor(picker, color) {
   picker.querySelector('.color-swatch').style.background = color;
   picker.querySelector('input[type="hidden"]').value = color;
   picker.querySelector('.custom-color-input').value = color;
+  saveState();
 }
 
 document.addEventListener('click', (e) => {
@@ -241,17 +246,61 @@ document.addEventListener('input', (e) => {
   }
 });
 
-function getTableTasks() {
-  return Array.from(document.querySelectorAll('#taskBody tr')).map(tr => {
-    return {
-      name: tr.querySelector('.f-name').value.trim(),
-      start: tr.querySelector('.f-start').value,
-      end: tr.querySelector('.f-end').value,
-      bg: tr.querySelector('.f-bg').value,
-      text: tr.querySelector('.f-text').value,
-      arrow: tr.querySelector('.f-arrow').checked,
+// タスク名・日付・矢印チェック・文字サイズ選択の変更を自動保存する
+document.addEventListener('input', (e) => {
+  if (e.target.matches('.f-name, .f-start, .f-end')) saveState();
+});
+document.addEventListener('change', (e) => {
+  if (e.target.matches('.f-arrow, #fontSizeSelect')) saveState();
+});
+
+const STORAGE_KEY = 'boosterCalendarState';
+
+function saveState() {
+  try {
+    const state = {
+      tasks: getAllRowsData(),
+      fontSize: document.getElementById('fontSizeSelect').value,
     };
-  }).filter(t => t.name && t.start && t.end);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    // localStorageが使えない環境（プライベートモード等）では保存をあきらめる
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function resetToDefaults() {
+  if (!confirm('入力内容を初期状態（サンプル8タスク）に戻します。よろしいですか？')) return;
+  document.getElementById('taskBody').innerHTML = '';
+  defaultTasks.forEach(t => addTaskRow(t));
+  document.getElementById('fontSizeSelect').value = 'auto';
+  saveState();
+  generateCalendar();
+}
+
+function getAllRowsData() {
+  return Array.from(document.querySelectorAll('#taskBody tr')).map(tr => ({
+    name: tr.querySelector('.f-name').value,
+    start: tr.querySelector('.f-start').value,
+    end: tr.querySelector('.f-end').value,
+    bg: tr.querySelector('.f-bg').value,
+    text: tr.querySelector('.f-text').value,
+    arrow: tr.querySelector('.f-arrow').checked,
+  }));
+}
+
+function getTableTasks() {
+  return getAllRowsData()
+    .map(t => ({ ...t, name: t.name.trim() }))
+    .filter(t => t.name && t.start && t.end);
 }
 
 async function generateCalendar() {
@@ -582,7 +631,16 @@ function downloadPNG() {
   a.click();
 }
 
-window.onload = () => { defaultTasks.forEach(t => addTaskRow(t)); generateCalendar(); };
+window.onload = () => {
+  const saved = loadState();
+  if (saved && Array.isArray(saved.tasks) && saved.tasks.length) {
+    saved.tasks.forEach(t => addTaskRow(t));
+    if (saved.fontSize) document.getElementById('fontSizeSelect').value = saved.fontSize;
+  } else {
+    defaultTasks.forEach(t => addTaskRow(t));
+  }
+  generateCalendar();
+};
 </script>
 </body>
 </html>
